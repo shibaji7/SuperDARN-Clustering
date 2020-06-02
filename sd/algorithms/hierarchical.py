@@ -25,8 +25,6 @@ __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
 
-import sys
-sys.path.append("extra/")
 import numpy as np
 
 from sklearn.cluster import AgglomerativeClustering, FeatureAgglomeration
@@ -52,7 +50,7 @@ class Hierarchi(object):
         self.distance_threshold = None
         return
 
-    def setup(self, **keywords):
+    def setup(self, keywords={}):
         """
         Setup the algorithms
         """

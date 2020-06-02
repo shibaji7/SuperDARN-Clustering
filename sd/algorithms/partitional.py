@@ -55,7 +55,7 @@ class Partition(object):
         np.random.seed(random_state)
         return
 
-    def setup(self, **keywords):
+    def setup(self, keywords={}):
         """
         Setup the algorithms
         """

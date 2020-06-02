@@ -23,7 +23,9 @@ from skills import Skills
 
 from partitional import Partition
 from hierarchical import Hierarchi
-
+from mixture import Mixtures
+from density import DBased
+from spectral import Spectral
 
 def run_all_partion_clustering(rad, date_range, boxcox=True, 
         params=["bmnum", "noise.sky", "tfreq", "v", "p_l", "w_l", "slist", "elv", "time_index"], 
@@ -76,10 +78,89 @@ def run_all_hierarchi_clustering(rad, date_range, boxcox=True,
     return
 
 
+def run_all_mixtures_clustering(rad, date_range, boxcox=True,
+        params=["bmnum", "noise.sky", "tfreq", "v", "p_l", "w_l", "slist", "elv", "time_index"],
+        methods = ["gmm","bgmm"],
+        n_clusters=20):
+    """
+    Invoke all mixture model clustering algorithm
+    rad: Radar code
+    date_range: Date range
+    """
+    fd = FetchData(rad, date_range)
+    beams, _ = fd.fetch_data(v_params=["elv", "v", "w_l", "gflg", "p_l", "slist", "v_e"])
+    rec = fd.convert_to_pandas(beams)
+    rec["time_index"] = utils.time_days_to_index([x.to_pydatetime() for x in rec["time"].tolist()])
+    if boxcox: rec = utils.boxcox_tx(rec)
+    print("\n",rec.head())
+    for method in methods:
+        print("\n >> Running {c} clustering".format(c=method))
+        model = Mixtures(method, rec[params].values, n_clusters=n_clusters)
+        model.setup()
+        model.run()
+        
+        print("\n Estimating model skills.")
+        skill = Skills(model.data, model.obj.labels_)
+    return
+
+
+def run_all_densitybased_clustering(rad, date_range, boxcox=False,
+        params=["bmnum", "v", "p_l", "w_l", "slist", "elv", "time_index"],
+        methods = ["dbscan", "optics", "hdbscan"], m_params={"dbscan":{"eps":5.}, "optics":{"max_eps":7.,"metric":"minkowski"}, 
+            "hdbscan":{"metric":"minkowski", "algorithm":"best"}}):
+    """
+    Invoke all partitioned clustering algorithm
+    rad: Radar code
+    date_range: Date range
+    """
+    fd = FetchData(rad, date_range)
+    beams, _ = fd.fetch_data(v_params=["elv", "v", "w_l", "gflg", "p_l", "slist", "v_e"])
+    rec = fd.convert_to_pandas(beams)
+    rec["time_index"] = utils.time_days_to_index([x.to_pydatetime() for x in rec["time"].tolist()])
+    if boxcox: rec = utils.boxcox_tx(rec)
+    print("\n",rec.head())
+    for method in methods:
+        print("\n >> Running {c} clustering".format(c=method))
+        model = DBased(method, rec[params].values)
+        model.setup(m_params[method])
+        model.run()
+        
+        print("\n Estimating model skills.")
+        skill = Skills(model.data, model.obj.labels_)
+    return
+
+
+def run_all_spectral_clustering(rad, date_range, boxcox=False,
+        params=["bmnum", "v", "p_l", "w_l", "slist", "elv", "time_index"],
+        methods = ["spc", "spcb", "spcc"], m_params={"spc":{}, "spcb":{}, "spcc":{}}, n_clusters=20):
+    """
+    Invoke all partitioned clustering algorithm
+    rad: Radar code
+    date_range: Date range
+    """
+    fd = FetchData(rad, date_range)
+    beams, _ = fd.fetch_data(v_params=["elv", "v", "w_l", "gflg", "p_l", "slist", "v_e"])
+    rec = fd.convert_to_pandas(beams)
+    rec["time_index"] = utils.time_days_to_index([x.to_pydatetime() for x in rec["time"].tolist()])
+    if boxcox: rec = utils.boxcox_tx(rec)
+    print("\n",rec.head())
+    for method in methods:
+        print("\n >> Running {c} clustering".format(c=method))
+        model = Spectral(method, rec[params].values, n_clusters)
+        model.setup(m_params[method])
+        model.run()
+        
+        print("\n Estimating model skills.")
+        skill = Skills(model.data, model.obj.labels_)
+    return
+
 
 if __name__ == "__main__":
-    run_all_partion_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["kmeans", "kmodes", "kmedians"])
+    run_all_partion_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["kmeans"])
     run_all_hierarchi_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["agglomerative"])
+    run_all_mixtures_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["gmm"])
+    run_all_densitybased_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["hdbscan"])
+    run_all_spectral_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["spc"])
     os.system("rm *.log")
     os.system("rm -rf __pycache__/")
     os.system("rm -rf algorithms/__pycache__/")
