@@ -79,9 +79,16 @@ class Beam(object):
                 2. Blanchard et al. [2009] |v| - 0.139w + 0.00113w^2 < 33.1 m/s
         """
         self.gsflg = {}
-        if len(self.v) > 0 and len(self.w_l) > 0: self.gsflg[0] = ((np.abs(self.v) + self.w_l/3.) < 30.).astype(int)
-        if len(self.v) > 0 and len(self.w_l) > 0: self.gsflg[1] = ((np.abs(self.v) + self.w_l*0.4) < 60.).astype(int)
-        if len(self.v) > 0 and len(self.w_l) > 0: self.gsflg[2] = ((np.abs(self.v) - 0.139*self.w_l + 0.00113*self.w_l**2) < 33.1).astype(int)
+        self.gsflg_prob = {}
+        if len(self.v) > 0 and len(self.w_l) > 0: 
+            self.gsflg[0] = ((np.abs(self.v) + (self.w_l/3.)) < 30.).astype(int)
+            self.gsflg_prob[0] = 1. / (1 + np.exp(np.abs(self.v) + (self.w_l/3.) - 30.))
+        if len(self.v) > 0 and len(self.w_l) > 0: 
+            self.gsflg[1] = ((np.abs(self.v) + (self.w_l*0.4)) < 60.).astype(int)
+            self.gsflg_prob[1] = 1. / (1 + np.exp(np.abs(self.v) + (self.w_l*0.4) - 60.))
+        if len(self.v) > 0 and len(self.w_l) > 0: 
+            self.gsflg[2] = ((np.abs(self.v) - (0.139*self.w_l) + (0.00113*self.w_l**2)) < 33.1).astype(int)
+            self.gsflg_prob[2] = 1. / (1 + np.exp(np.abs(self.v) + (0.139*self.w_l) + (0.00113*self.w_l**2) - 33.1))
         return
 
 

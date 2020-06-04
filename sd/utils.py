@@ -14,7 +14,10 @@ __status__ = "Research"
 
 import numpy as np
 from scipy.stats import boxcox
+from scipy import stats
+from scipy.stats import beta
 from pysolar.solar import *
+from sklearn.preprocessing import MinMaxScaler
 
 def time_days_to_index(time_days):
     """
@@ -44,14 +47,14 @@ def time_days_to_sec(time):
     #np.round(np.unique(time_sec).reshape((-1, 1)))
     return time_sec
 
-def boxcox_tx(data, fetures=["v", "w_l", "p_l"]):
+def boxcox_tx(data, features=["v", "w_l", "p_l"]):
     """
     Implement a boxcox transformation
     data: Pandas dataframe
     features: all features need a transformations
     """
     _tx = data.copy()
-    for f in fetures:
+    for f in features:
         if f == "v" or f == "w_l": _tx[f] = boxcox(np.abs(_tx[f]))[0] * np.sign(_tx[f])
         else: _tx[f] = boxcox(np.abs(_tx[f]))[0] * np.sign(_tx[f])
     return _tx
@@ -70,3 +73,34 @@ def get_altitude_azimuth(rad, times, beams, gates):
         alt.append(get_altitude(lat, lon, t))
         azm.append(get_azimuth(lat, lon, t))
     return np.array(alt), np.array(azm)
+
+def normalize(data, features, a=0, b=1):
+    """
+    Normalize the data between a and b
+    data: pandas dataframe
+    features: all features need a transformations
+    """
+    scaler = MinMaxScaler(feature_range=(a, b))
+    for f in features:
+        data[f] = scaler.fit_transform(np.array(data[f]).reshape(-1, 1)).ravel()
+    return data
+
+
+def kde(probs, labels, pth=0.5, pbnd=[.2,.8]):
+    """
+    Estimate overall confidance of each clusters estimated using KDE
+    probs: Probabilitis of IS/GS
+    labels: cluster labels
+    pth: probability of KDE thresolding
+    pbnd: bounding of unknown scatters
+    """
+    clusters = {}
+    for _c in range(len(set(labels))):
+        ps = probs[labels == _c]
+        a, b, loc, scale = beta.fit(ps, floc=0., fscale=1.)
+        gp = 1 - beta.cdf(pth, a, b, loc=0., scale=1.)
+        ci = None
+        if gp <= pbnd[0]: gflg=0.
+        elif gp >= pbnd[1]: gflg=1.
+        clusters[_c] = {"gs_prob": gp, "CI": ci}
+    return clusters
