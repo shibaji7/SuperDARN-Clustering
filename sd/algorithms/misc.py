@@ -2,8 +2,9 @@
 
 """
 misc.py: module is deddicated to run miscellaneous algorithms, implemented by https://pypi.org/project/pyclustering/.
-    - BIRCH
     - BSAS
+    - MBSAS
+    - TTSAS
     - CLARANS
     - CURE
     - Elbow
@@ -13,14 +14,13 @@ misc.py: module is deddicated to run miscellaneous algorithms, implemented by ht
     - G-Means
     - HSyncNet
     - K-Means++
-    - MBSAS
     - ROCK
     - Silhouette
     - SOM-SC
     - SyncNet
     - Sync-SOM
-    - TTSAS
     - X-Means
+    - BIRCH
 """
 
 __author__ = "Chakraborty, S."
@@ -35,7 +35,10 @@ __status__ = "Research"
 
 import numpy as np
 
-from pyclustering.cluster.brich import brich
+from pyclustering.cluster.bsas import bsas
+from pyclustering.cluster.mbsas import mbsas
+from pyclustering.cluster.ttsas import ttsas
+from pyclustering.cluster.clarans import clarans
 
 class Mixtures(object):
     """All miscellaneous model algorithms are implemened here."""
@@ -50,8 +53,9 @@ class Mixtures(object):
         """
 
         self.L = data.shape[0]
+        self.data = data
         self.method = method
-        self.data = [data[x,:].tolist() for x in range(data.shape[0])]
+        self.data_list = [data[x,:].tolist() for x in range(data.shape[0])]
         np.random.seed(random_state)
         self.random_state = random_state
         
@@ -80,18 +84,37 @@ class Mixtures(object):
         setattr(self.obj, "noise_", noise_)
         return
 
+    def _init_(self):
+        """
+        Initialize model parameters
+        """
+        if self.method in ["bsas", "mbsas", "ttsas"]:
+            self.threshold1 = 1.
+            self.maximum_clusters = 3
+            self.threshold2 = 2.
+        if self.method == "clarans":
+            self.numlocal = 1
+            self.maxneighbor = 10
+        return
+
     def setup(self, **keywords):
         """
         Setup the algorithms
         """
+        self._init_()
         for key in keywords.keys():
             setattr(self, key, keywords[key])
 
-        if self.method == "brich": self.obj = brich(self.data, self.n_clusters, branching_factor=50, max_node_entries=200, diameter=0.5, type_measurement=measurement_type.CENTROID_EUCLIDEAN_DISTANCE, entry_size_limit=500, diameter_multiplier=1.5 )
+        if self.method == "bsas": self.obj = bsas(self.data_list, self.maximum_clusters, self.threshold1, ccore=self.ccore)
+        if self.method == "mbsas": self.obj = mbsas(self.data_list, self.maximum_clusters, self.threshold1, ccore=self.ccore)
+        if self.method == "ttsas": self.obj = ttsas(self.data_list, self.threshold1, self.threshold2, ccore=self.ccore)
+        if self.method == "clarans": self.obj = clarans(self.data_list, self.n_clusters, self.numlocal, self.maxneighbor)
         return
 
     def run(self):
         """
         Run the models
         """
+        self.obj = self.obj.process()
+        self.extract_lables()
         return
