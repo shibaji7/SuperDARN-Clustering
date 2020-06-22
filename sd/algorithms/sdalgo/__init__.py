@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-sdalgo.py: module is deddicated to run custom SuperDARN algorithm developed by Esther Robb.
+sdalgo: module is deddicated to run custom SuperDARN algorithm developed by Esther Robb.
     - Gridbased DBSCAN
     - DBSCAN GMM
     - Gridbased DBSCAN GMM

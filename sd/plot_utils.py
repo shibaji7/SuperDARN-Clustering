@@ -626,3 +626,10 @@ def _make_ellipses(model, ax, n_cluster, f1, f2):
     ell.set_clip_box(ax.bbox)
     ell.set_alpha(0.5)
     ax.add_artist(ell)
+
+
+def plot_pdfs(fname=""):
+    """
+    Plot the pdfs used for IS GS
+    """
+    return

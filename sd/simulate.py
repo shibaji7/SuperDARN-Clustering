@@ -27,6 +27,7 @@ from mixture import Mixtures
 from density import DBased
 from spectral import Spectral
 from gridbased import GBased
+from misc import Misc
 
 def run_all_partion_clustering(rad, date_range, boxcox=True, norm=True, 
         params=["bmnum", "noise.sky", "tfreq", "v", "p_l", "w_l", "slist", "elv", "time_index"], 
@@ -187,6 +188,31 @@ def run_all_gridbased_clustering(rad, date_range, boxcox=False, norm=True,
     return
 
 
+def run_all_misc_clustering(rad, date_range, boxcox=False, norm=True,
+        params=["bmnum", "slist", "elv", "time_index", "v", "w_l"], methods = ["bang", "clique"]):
+    """
+    Invoke all misc clustering algorithm
+    rad: Radar code
+    date_range: Date range
+    """
+    fd = FetchData(rad, date_range)
+    beams, _ = fd.fetch_data(v_params=["elv", "v", "w_l", "gflg", "p_l", "slist", "v_e"])
+    rec = fd.convert_to_pandas(beams)
+    rec["time_index"] = utils.time_days_to_index([x.to_pydatetime() for x in rec["time"].tolist()])
+    if boxcox: rec = utils.boxcox_tx(rec)
+    if norm: rec = utils.normalize(rec, params)
+    print("\n",rec.head())
+    for method in methods:
+        print("\n >> Running {c} clustering".format(c=method))
+        model = Misc(method, rec[params].values)
+        model.setup()
+        model.run()
+        
+        print("\n Estimating model skills.")
+        skill = Skills(model.data, model.obj.labels_)
+    return
+
+
 if __name__ == "__main__":
     run_all_partion_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["kmeans"])
     run_all_hierarchi_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["agglomerative"])
@@ -194,6 +220,7 @@ if __name__ == "__main__":
     run_all_densitybased_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["hdbscan"])
     run_all_spectral_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 1)], methods=["spc"])
     run_all_gridbased_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 2)], methods=["clique"])
+    run_all_misc_clustering("sas", [dt.datetime(2018, 4, 5), dt.datetime(2018, 4, 5, 2)], methods=["bsas"])
     os.system("rm *.log")
     os.system("rm -rf __pycache__/")
     os.system("rm -rf algorithms/__pycache__/")

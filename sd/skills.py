@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/env python
 
 """
 skills.py: module is dedicated to skills of a clustering algoritm.
@@ -67,6 +67,9 @@ class Skills(object):
         self.bhscore = self._ball_hall_score()
         self.hscore = self._hartigan_score()
         self.xuscore = self._xu_score()
+        self.xiebenie = self.iv.xie_benie(self.X, self.labels)
+        self.ch = self.iv.CH(self.X, self.labels)
+        self.I = self.iv.I(self.X, self.labels)
         if self.verbose:
             print("\n Estimated Skills.")
             print(" Davies Bouldin Score - ",self.dbscore)
@@ -75,10 +78,8 @@ class Skills(object):
             print(" Ball-Hall Score - ",self.bhscore)
             print(" Hartigan Score - ",self.hscore)
             print(" Xu Score - ",self.xuscore)
+            print(" Xie Benie Score - ",self.xiebenie)
             print(" Estimation done.")
-        return
-
-    def _xie_beni_score(self):
         return
 
     def _errors(self):

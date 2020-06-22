@@ -41,14 +41,14 @@ class InternalIndex(object):
             c_list.append(self.euclidean_centroid(data,label,index_i))
         return c_list
         
-    def element_of_clustert (self, data, label, cluster_i):
+    def element_of_clustert(self, data, label, cluster_i):
         eoc = []
         for l in range(len(data)):
             if label[l] == cluster_i:
                 eoc.append(data[l])
         return np.asarray(eoc)
     
-    def distance_from_cluster (self, data, label,  cluster_i, centroid_i):
+    def distance_from_cluster(self, data, label,  cluster_i, centroid_i):
         eoc = self.element_of_clustert(data, label, cluster_i)
         centroid_i = self.euclidean_centroid(data, label, centroid_i)
         distance = 0
@@ -56,7 +56,7 @@ class InternalIndex(object):
             distance += sy.spatial.distance.euclidean(centroid_i, i)
         return distance
     
-    def distance_from_cluster_sqr (self, data, label,  cluster_i, centroid_i):
+    def distance_from_cluster_sqr(self, data, label,  cluster_i, centroid_i):
         eoc = self.element_of_clustert(data, label, cluster_i)
         centroid_i = self.euclidean_centroid(data, label, centroid_i)
         distance = 0
@@ -87,7 +87,7 @@ class InternalIndex(object):
         return count
         
     
-    def dbi (self, data, label):
+    def dbi(self, data, label):
         db = 0
         for index_i in self.class_iter:
             c_i = self.euclidean_centroid(data, label, index_i)

@@ -11,12 +11,13 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
-
+import os
 import numpy as np
 from scipy.stats import boxcox
 from scipy import stats
 from scipy.stats import beta
-from pysolar.solar import *
+from pysolar.solar import get_altitude
+from netCDF4 import Dataset
 from sklearn.preprocessing import MinMaxScaler
 
 def time_days_to_index(time_days):
@@ -85,7 +86,6 @@ def normalize(data, features, a=0, b=1):
         data[f] = scaler.fit_transform(np.array(data[f]).reshape(-1, 1)).ravel()
     return data
 
-
 def kde(probs, labels, pth=0.5, pbnd=[.2,.8]):
     """
     Estimate overall confidance of each clusters estimated using KDE
@@ -104,3 +104,22 @@ def kde(probs, labels, pth=0.5, pbnd=[.2,.8]):
         elif gp >= pbnd[1]: gflg=1.
         clusters[_c] = {"gs_prob": gp, "CI": ci}
     return clusters
+
+def get_sza(times, rad, mask=None):
+    """
+    Fetch sza at all range cell in radar FoV
+    rad: Radar code
+    mask: mask metrix
+    """
+    fname = "data/sim/{rad}.geolocate.data.nc.gz".format(rad=rad)
+    os.system("gzip -d " + fname)
+    fname = fname.replace(".gz","")
+    data = Dataset(fname)
+    lat, lon = data["geo_lat"], data["geo_lon"]
+    sza = []
+    for d in times:
+        sza.append(get_altitude(lat, lon, d))
+    sza = np.array(sza)
+    os.system("gzip " + fname)
+    return sza
+

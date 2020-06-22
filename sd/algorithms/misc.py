@@ -40,7 +40,7 @@ from pyclustering.cluster.mbsas import mbsas
 from pyclustering.cluster.ttsas import ttsas
 from pyclustering.cluster.clarans import clarans
 
-class Mixtures(object):
+class Misc(object):
     """All miscellaneous model algorithms are implemened here."""
 
     def __init__(self, method, data, n_clusters=2, random_state=0):
@@ -72,7 +72,7 @@ class Mixtures(object):
         lables_ = np.zeros(self.L)
         for _c in C:
             lables_[self.clusters[_c]] = _c
-        setattr(self.obj, "lables_", lables_)
+        setattr(self.obj, "labels_", lables_)
         return
 
     def extract_noise(self):
