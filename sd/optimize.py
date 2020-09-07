@@ -23,7 +23,7 @@ import numpy as np
 from get_sd_data import FetchData
 import utils
 from skills import Skills
-from plot_utils import 
+from plot_utils import RangeTimePlot, getD2N
 
 from partitional import Partition
 from hierarchical import Hierarchi
@@ -46,16 +46,55 @@ class Model(object):
         for k in vars(args).keys():
             setattr(self, k, vars(args)[k])
         self._ini_()
-        self._run()
-        if hasattr(self, "skills") and self.skills: self._est_skill_()
+        self._run_()
+        #if hasattr(self, "skills") and self.skills: self._est_skill_()
         if hasattr(self, "plot") and self.plot: self._plot_estimates_()
+        if hasattr(self, "save") and self.save: self._save_estimates_()
         return
 
-    def _plot_estimates(self):
+    def _save_estimates_(self):
+        """
+        Save estimates into hdf5 files
+        """
+        fname = "data/op/{rad}.{model}.{dn}.nc".format(rad=self.rad, model=self.model, dn=self.stime.strftime("%Y-%m-%d"))
+        dat = self.rec.to_xarray()
+        #dat.attrs = {"dbscore": self.skill.dbscore, "chscore": self.skill.chscore, "siscore": self.skill.siscore,
+        #        "bhscore": self.skill.bhscore, "hscore": self.skill.hscore, "xuscore": self.skill.xuscore,
+        #        "xiebenie": self.skill.xiebenie}
+        dat.to_netcdf(fname)
+        return
+
+    def _plot_estimates_(self):
         """
         Plot estimations
         """
-        rtp = RangeTimePlot(nrang, unique_times, fig_name, num_subplots=3)
+        beams = set(self.rec["bmnum"])
+        for b in beams:
+            print("Beam = ", b)
+            data_dict = (self.rec[self.rec.bmnum==b]).to_dict(orient="list")
+            # Create and show subplots
+            fig_name = ("%s\t\t\t\tBeam %d\t\t\t\t%s" % (self.rad.upper(), b, self.start.strftime("%Y%m%d"))).expandtabs()
+            #num_subplots = 3 if alg != "Traditional" else 2
+            rtp = RangeTimePlot(75, data_dict["time"], fig_name, num_subplots=3)
+            #rtp = RangeTimePlot(nrang, unique_times, fig_name, num_subplots=num_subplots)
+            #if alg != "Traditional":
+            clust_name = ("%s : %d clusters"
+                        % (self.model, len(np.unique(np.hstack(data_dict["labels"]))))
+                        )
+            #rtp.addClusterPlot(data_dict, np.array(data_dict["labels"]), b, clust_name)
+                
+                #isgs_name = ("%s : %s threshold" % (alg, threshold))
+                #rtp.addGSISPlot(self.data_dict, gs_flg, b, isgs_name)
+            vel_name = "v"
+            rtp.addVelPlot(data_dict, b, vel_name, vel_max=250, vel_step=25)
+            #    if save_fig:
+            plot_date = self.start.strftime("%Y%m%d")
+            filename = "%s_%s_%02d.jpg" % (self.rad, plot_date, b)
+            filepath = "data/op/" + filename
+            rtp.save(filepath)
+            rtp.close()
+            break
+        #rtp.addClusterPlot(data_dict, np.array(data_dict["labels"].tolist()), 7, title, show_closerange=True, xlabel="")
         return
 
     def _ini_(self, params=["bmnum", "noise.sky", "tfreq", "v", "p_l", "w_l", "slist", "elv", "time_index"], 
@@ -67,27 +106,29 @@ class Model(object):
         beams, _ = fd.fetch_data(v_params=v_params)
         self.rec = fd.convert_to_pandas(beams)
         self.rec["time_index"] = utils.time_days_to_index([x.to_pydatetime() for x in self.rec["time"].tolist()])
+        self.rec["time"] = getD2N(self.rec["time"].tolist())
         if hasattr(self, "boxcox") and self.boxcox: self.rec = utils.boxcox_tx(self.rec)
         if hasattr(self, "norm") and self.norm: self.rec = utils.normalize(self.rec, params)
         if self.verbose: print("\n",self.rec.head())
         return
 
-    def _est_skill_(self):
+    def _est_skill_(self, params=["p_l"]):
         """
         Estimate model skills
         """
         print("\n Estimating model skills.")
-        skill = Skills(self.m.data, self.m.obj.labels_, verbose=self.verbose)
+        self.skill = Skills(self.rec[params].values, self.m.obj.labels_, verbose=self.verbose)
         return
 
 
-    def _run(self, params=["bmnum", "noise.sky", "tfreq", "v", "p_l", "w_l", "slist", "elv", "time_index"]):
+    def _run_(self, params=["bmnum", "noise.sky", "tfreq", "v", "w_l", "slist", "elv", "time_index"]):
         """
         Run the model
         """
         if self.category == "partition": self.m = Partition(self.model, self.rec[params].values, n_clusters=self.n_clusters)
         self.m.setup()
         self.m.run()
+        self.rec["labels"] = self.m.obj.labels_
         return
 
 def _del_():
@@ -104,9 +145,9 @@ def _del_():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--category", default="partition", help="Algorithm category (default 'partition')")
-    parser.add_argument("-m", "--model", default="kmeans", help="Algorithm name (default 'kmeans')")
-    parser.add_argument("-nc", "--n_clusters", type=int, default=20, help="Number of clusters (default 20)")
+    parser.add_argument("-c", "--category", default="partition", help="Algorithm category")
+    parser.add_argument("-m", "--model", default="kmeans", help="Algorithm name")
+    parser.add_argument("-nc", "--n_clusters", type=int, default=8, help="Number of clusters (default 8)")
     parser.add_argument("-r", "--rad", default="sas", help="SuperDARN radar code (default sas)")
     parser.add_argument("-s", "--start", default=dt.datetime(2018, 4, 5), help="Start date (default 2018-04-05)",
             type=dparser.isoparse)
@@ -114,8 +155,9 @@ if __name__ == "__main__":
             type=dparser.isoparse)
     parser.add_argument("-cl", "--clear", action="store_true", help="Clear pervious stored files (default False)")
     parser.add_argument("-sk", "--skills", action="store_false", help="Run skill estimate (default True)")
-    parser.add_argument("-pl", "--plot", action="store_true", help="Plot estimations (default False)")
+    parser.add_argument("-pl", "--plot", action="store_false", help="Plot estimations (default True)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity (default False)")
+    parser.add_argument("-sv", "--save", action="store_false", help="Increase output verbosity (default True)")
     args = parser.parse_args()
     if args.verbose:
         print("\n Parameter list for simulation ")
