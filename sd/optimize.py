@@ -33,6 +33,7 @@ from spectral import Spectral
 from gridbased import GBased
 
 
+
 class Model(object):
     """ Class is dedicated to run a model and optimize the parameters """
 
@@ -43,6 +44,7 @@ class Model(object):
         self.rad = rad
         self.stime = stime
         self.etime = etime
+        self.create_folder()
         for k in vars(args).keys():
             setattr(self, k, vars(args)[k])
         self._ini_()
@@ -50,6 +52,12 @@ class Model(object):
         if hasattr(self, "skills") and self.skills: self._est_skill_()
         if hasattr(self, "plot") and self.plot: self._plot_estimates_()
         if hasattr(self, "save") and self.save: self._save_estimates_()
+        return
+    
+    def create_folder(self):
+        """ Create folder structure to save outputs """
+        self._dir_ = "data/op/{dn}/{rad}/".format(dn=self.stime.strftime("%Y.%m.%d"), rad=self.rad)
+        os.system("mkdir -p " + self._dir_)
         return
 
     def _save_estimates_(self):
@@ -89,9 +97,8 @@ class Model(object):
             rtp.addVelPlot(data_dict, b, vel_name, vel_max=250, vel_step=25)
             #    if save_fig:
             plot_date = self.start.strftime("%Y%m%d")
-            filename = "%s_%s_%02d_%s_%s.jpg" % (self.rad, plot_date, b, self.category, self.model)
-            filepath = "data/op/" + filename
-            rtp.save(filepath)
+            filename = self._dir_ + "%s_%s_%02d_%s_%s.png" % (self.rad, plot_date, b, self.category, self.model)
+            rtp.save(filename)
             rtp.close()
         return
 
@@ -168,6 +175,15 @@ if __name__ == "__main__":
         print("\n Parameter list for simulation ")
         for k in vars(args).keys():
             print("     ", k, "->", vars(args)[k])
-    Model(args.rad, args.start, args.end, args)
+    dates = pd.read_csv("data/sim/dates.csv", parse_dates=["dn"])
+    rads = pd.read_csv("data/sim/rads.csv")
+    for start in dates.dn.tolist():
+        args.start = start
+        args.end = start + dt.timedelta(days=1)
+        for rad in rads.rad.tolist():
+            args.rad = rad
+            Model(args.rad, args.start, args.end, args)
+            break
+        break
     print("")
     _del_()
