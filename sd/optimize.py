@@ -83,20 +83,14 @@ class Model(object):
             data_dict = (self.rec[self.rec.bmnum==b]).to_dict(orient="list")
             # Create and show subplots
             fig_name = ("%s\t\t\t\tBeam %d\t\t\t\t%s" % (self.rad.upper(), b, self.start.strftime("%Y%m%d"))).expandtabs()
-            #num_subplots = 3 if alg != "Traditional" else 2
             rtp = RangeTimePlot(75, data_dict["time"], fig_name, num_subplots=3)
-            #rtp = RangeTimePlot(nrang, unique_times, fig_name, num_subplots=num_subplots)
-            #if alg != "Traditional":
-            clust_name = ("%s : %d clusters"
-                        % (self.model, len(np.unique(np.hstack(data_dict["labels"]))))
-                        )
+            clust_name = ("%s : %d clusters" % (self.model, len(np.unique(np.hstack(data_dict["labels"])))) )
             rtp.addClusterPlot(data_dict, np.array(data_dict["labels"]), b, clust_name)
                 
                 #isgs_name = ("%s : %s threshold" % (alg, threshold))
                 #rtp.addGSISPlot(self.data_dict, gs_flg, b, isgs_name)
             vel_name = "v"
             rtp.addVelPlot(data_dict, b, vel_name, vel_max=250, vel_step=25)
-            #    if save_fig:
             plot_date = self.start.strftime("%Y%m%d")
             filename = self._dir_ + "%s_%s_%02d_%s_%s.png" % (self.rad, plot_date, b, self.category, self.model)
             rtp.save(filename)
