@@ -19,6 +19,7 @@ import datetime as dt
 import os
 from dateutil import parser as dparser
 import numpy as np
+import pandas as pd
 
 from get_sd_data import FetchData
 import utils
