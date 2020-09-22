@@ -20,91 +20,91 @@ from scipy import sparse
 import numpy as np
 from sklearn.cluster import DBSCAN
 
-class Algorithm(object):
-    """
-    Superclass for algorithms.
-    Contains data processing and plotting functions.
-    """
-    def __init__(self, start_time, end_time, rad, params):
-        self.start_time = start_time
-        self.end_time = end_time
-        self.rad = rad
-        self.params = params
-        return
+#class Algorithm(object):
+#    """
+#    Superclass for algorithms.
+#    Contains data processing and plotting functions.
+#    """
+#    def __init__(self, start_time, end_time, rad, params):
+#        self.start_time = start_time
+#        self.end_time = end_time
+#        self.rad = rad
+#        self.params = params
+#        return
 
-    def _filter_by_time(self, start_time, end_time, data_dict):
-        time = data_dict['time']
-        start_i, end_i = None, None
-        start_time, end_time = date2num(start_time), date2num(end_time)
-        if start_time < time[0][0]: # Sometimes start time is a few seconds before the first scan
-            start_time = time[0][0]
-        for i, t in enumerate(time):
-            if np.sum(start_time >= t) > 0 and start_i == None: start_i = i
-            if np.sum(end_time >= t) > 0 and start_i != None: end_i = i+1
-        data_dict['gate'] = data_dict['gate'][start_i:end_i]
-        data_dict['time'] = data_dict['time'][start_i:end_i]
-        data_dict['beam'] = data_dict['beam'][start_i:end_i]
-        data_dict['vel'] = data_dict['vel'][start_i:end_i]
-        data_dict['wid'] = data_dict['wid'][start_i:end_i]
-        data_dict['elv'] = data_dict['elv'][start_i:end_i]
-        data_dict['trad_gsflg'] = data_dict['trad_gsflg'][start_i:end_i]
-        return data_dict
+#    def _filter_by_time(self, start_time, end_time, data_dict):
+#        time = data_dict["time"]
+#        start_i, end_i = None, None
+#        start_time, end_time = date2num(start_time), date2num(end_time)
+#        if start_time < time[0][0]: # Sometimes start time is a few seconds before the first scan
+#            start_time = time[0][0]
+#        for i, t in enumerate(time):
+#            if np.sum(start_time >= t) > 0 and start_i == None: start_i = i
+#            if np.sum(end_time >= t) > 0 and start_i != None: end_i = i+1
+#        data_dict["gate"] = data_dict["gate"][start_i:end_i]
+#        data_dict["time"] = data_dict["time"][start_i:end_i]
+#        data_dict["beam"] = data_dict["beam"][start_i:end_i]
+#        data_dict["vel"] = data_dict["vel"][start_i:end_i]
+#        data_dict["wid"] = data_dict["wid"][start_i:end_i]
+#        data_dict["elv"] = data_dict["elv"][start_i:end_i]
+#        data_dict["trad_gsflg"] = data_dict["trad_gsflg"][start_i:end_i]
+#        return data_dict
 
-    def _1D_to_scanxscan(self, array):
-        """
-        Convert a 1-dimensional array to a list of data from each scan
-        :param array: a 1D array, length = <total # points in data_dict>
-        :return: a list of arrays, shape: <number of scans> x <data points for each scan>
-        """
-        scans = []
-        i = 0
-        for s in self.data_dict['gate']:
-            scans.append(array[i:i+len(s)])
-            i += len(s)
-        return scans
+#    def _1D_to_scanxscan(self, array):
+#        """
+#        Convert a 1-dimensional array to a list of data from each scan
+#        :param array: a 1D array, length = <total # points in data_dict>
+#        :return: a list of arrays, shape: <number of scans> x <data points for each scan>
+#        """
+#        scans = []
+#        i = 0
+#        for s in self.data_dict["gate"]:
+#            scans.append(array[i:i+len(s)])
+#            i += len(s)
+#        return scans
 
-class DBSCAN_GMM(GMMAlgorithm):
-    """ Run DBSCAN on space/time features, then GMM on space/time/vel/wid """
+#class DBSCAN_GMM(GMMAlgorithm):
+#    """ Run DBSCAN on space/time features, then GMM on space/time/vel/wid """
+#
+#    def __init__(self, start_time, end_time, rad,
+#            beam_eps=3, gate_eps=1, scan_eps=1,  # DBSCAN
+#            minPts=5, eps=1,  # DBSCAN
+#            n_clusters=5, cov="full",  # GMM
+#            features=["beam", "gate", "time", "vel", "wid"],  # GMM
+#            BoxCox=False):
+#        self.params = {"scan_eps" : scan_eps, "beam_eps": beam_eps, "gate_eps": gate_eps, "eps": eps,
+#                "min_pts": minPts, "n_clusters" : n_clusters, "cov": cov, "features": features, "BoxCox": BoxCox}
+#        clust_flg, self.runtime = self._dbscan_gmm()
+#        self.clust_flg = self._1D_to_scanxscan(clust_flg)
+#        return
 
-    def __init__(self, start_time, end_time, rad,
-            beam_eps=3, gate_eps=1, scan_eps=1,  # DBSCAN
-            minPts=5, eps=1,  # DBSCAN
-            n_clusters=5, cov="full",  # GMM
-            features=["beam", "gate", "time", "vel", "wid"],  # GMM
-            BoxCox=False):
-        self.params = {"scan_eps" : scan_eps, "beam_eps": beam_eps, "gate_eps": gate_eps, "eps": eps,
-                "min_pts": minPts, "n_clusters" : n_clusters, "cov": cov, "features": features, "BoxCox": BoxCox}
-        clust_flg, self.runtime = self._dbscan_gmm()
-        self.clust_flg = self._1D_to_scanxscan(clust_flg)
-        return
+#    def _dbscan_gmm(self):
+#        # Run DBSCAN on space/time features
+#        X = self._get_dbscan_data_array()
+#        t0 = time.time()
+#        db = DBSCAN(eps=self.params["eps"],
+#                min_samples=self.params["min_pts"]
+#                ).fit(X)
+#        db_runtime = time.time() - t0
+#        # Print # of clusters created by DBSCAN
+#        db_flg = db.labels_
+#        gmm_data = self._get_gmm_data_array()
+#        clust_flg, gmm_runtime = self._gmm_on_existing_clusters(gmm_data, db_flg)
+#        return clust_flg, db_runtime + gmm_runtime
 
-    def _dbscan_gmm(self):
-        # Run DBSCAN on space/time features
-        X = self._get_dbscan_data_array()
-        t0 = time.time()
-        db = DBSCAN(eps=self.params["eps"],
-                min_samples=self.params["min_pts"]
-                ).fit(X)
-        db_runtime = time.time() - t0
-        # Print # of clusters created by DBSCAN
-        db_flg = db.labels_
-        gmm_data = self._get_gmm_data_array()
-        clust_flg, gmm_runtime = self._gmm_on_existing_clusters(gmm_data, db_flg)
-        return clust_flg, db_runtime + gmm_runtime
-
-    def _get_dbscan_data_array(self):
-        beam = np.hstack(self.data_dict["beam"])
-        gate = np.hstack(self.data_dict["gate"])
-        # Get the scan # for each data point
-        scan_num = []
-        for i, scan in enumerate(self.data_dict["time"]):
-            scan_num.extend([i]*len(scan))
-            scan_num = np.array(scan_num)
-            # Divide each feature by its "epsilon" to create the illusion of DBSCAN having multiple epsilons
-            data = np.column_stack((beam / self.params["beam_eps"],
-                gate / self.params["gate_eps"],
-                scan_num / self.params["scan_eps"]))
-                                                                                                                                                            return data
+#    def _get_dbscan_data_array(self):
+#        beam = np.hstack(self.data_dict["beam"])
+#        gate = np.hstack(self.data_dict["gate"])
+#        # Get the scan # for each data point
+#        scan_num = []
+#        for i, scan in enumerate(self.data_dict["time"]):
+#            scan_num.extend([i]*len(scan))
+#        scan_num = np.array(scan_num)
+#        # Divide each feature by its "epsilon" to create the illusion of DBSCAN having multiple epsilons
+#        data = np.column_stack((beam / self.params["beam_eps"],
+#            gate / self.params["gate_eps"],
+#            scan_num / self.params["scan_eps"]))
+#        return data
 
 class GridBasedDBAlgorithm():
     """
@@ -136,7 +136,7 @@ class GridBasedDBAlgorithm():
         self.params = params
         # Create the C matrix - ratio of radial / angular distance for each point
         dtheta = self.params["dtheta"] * np.pi / 180.0
-        nrang, nbeam = int(self.data_dict["nrang"]), int(self.data_dict["nbeam"])
+        nrang, nbeam = int(self.params["nrang"]), int(self.params["nbeam"])
         self.C = np.zeros((nrang, nbeam))
         for gate in range(nrang):
             for beam in range(nbeam):
@@ -176,11 +176,11 @@ class GridBasedDBAlgorithm():
         return cij
 
     def _get_gbdb_data_matrix(self, data_dict):
-        gate = data_dict["gate"]
-        beam = data_dict["beam"]
+        gate = data_dict["slist"]
+        beam = data_dict["bmnum"]
         values = [[True]*len(s) for s in beam]
-        ngate = int(data_dict["nrang"])
-        nbeam = int(data_dict["nbeam"])
+        ngate = int(self.params["nrang"])
+        nbeam = int(self.params["nbeam"])
         nscan = len(beam)
         data = []
         data_i = []
@@ -242,3 +242,24 @@ class GridBasedDBAlgorithm():
                             seeds.append((s, new_id))
         return seeds, possible_pts
 
+
+class GridBasedDBSCAN(GridBasedDBAlgorithm):
+    
+    def __init__(self, start_time, end_time, rad, nbeam, nrang, rec,
+            f=0.2, g=1, pts_ratio=0.3,
+            dr=45, dtheta=3.24, r_init=180,
+            scan_eps=1):
+        super().__init__(start_time, end_time, rad,
+                {"f": f,
+                    "g": g,
+                    "pts_ratio": pts_ratio,
+                    "scan_eps": scan_eps,     # for scan by scan set = 0, for timefilter set >= 1
+                    "dr": dr,
+                    "dtheta": dtheta,
+                    "r_init": r_init,
+                    "nbeam": nbeam,
+                    "nrang": nrang})
+        self.data_dict = rec.to_dict("list")
+        data, data_i = self._get_gbdb_data_matrix(self.data_dict)
+        #clust_flg, self.runtime = self._gbdb(data, data_i)
+        #self.clust_flg = self._1D_to_scanxscan(clust_flg)

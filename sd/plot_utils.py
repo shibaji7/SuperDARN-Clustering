@@ -275,6 +275,8 @@ class RangeTimePlot(object):
 
 
     def save(self, filepath):
+        import os
+        os.system("rm "+filepath)
         self.fig.savefig(filepath)
 
 
@@ -322,7 +324,7 @@ class RangeTimePlot(object):
             flag_mask = (flags == f) & mask
             t = [np.where(tf == self.unique_times)[0][0] for tf in time[flag_mask]]
             g = gate[flag_mask].astype(int)
-            # Modulus to ensure values in colormesh do not exceed the number of available colors
+           # Modulus to ensure values in colormesh do not exceed the number of available colors
             color_mesh[t, g] = f
         
         # Set up variables for pcolormesh
@@ -331,15 +333,16 @@ class RangeTimePlot(object):
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
         cmap.set_bad("w", alpha=0.0)
         # Configure axes
-        ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))
+        ax.xaxis.set_major_formatter(DateFormatter("%H"))
         hours = mdates.HourLocator(byhour=range(0, 24, 1))
         ax.xaxis.set_major_locator(hours)
         ax.set_xlabel(xlabel)
         ax.set_xlim(self.unique_times[0], self.unique_times[-1])
         ax.set_ylabel("Range gate")
-        #for x,y,z in zip(mesh_x, mesh_y, masked_colormesh):
-        #    ax.scatter(x,y,c=z,cmap="jet")
-        ax.pcolor(self.unique_times, self.unique_gates, masked_colormesh, lw=0.01)#, cmap="jet", vmax=250, vmin=-250)
+        for x,y,z in zip(mesh_x, mesh_y, masked_colormesh):
+            ax.scatter(x,y,c=z,cmap="jet",marker="s",s=1)
+        #ax.pcolormesh(self.unique_times, self.unique_gates, color_mesh.T, lw=0.01, edgecolor="None", cmap=cmap, norm=norm)
+        #, cmap="jet", vmax=250, vmin=-250)
         #ax.pcolormesh(masked_colormesh, lw=0.01, edgecolors="None", cmap=cmap, norm=norm)
         #ax.pcolormesh(mesh_x, mesh_y, masked_colormesh, lw=0.01, edgecolors="None", cmap=cmap, norm=norm)
         if label_clusters:
