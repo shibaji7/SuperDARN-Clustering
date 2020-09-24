@@ -32,7 +32,7 @@ from mixture import Mixtures
 from density import DBased
 from spectral import Spectral
 from gridbased import GBased
-
+from misc import Misc
 
 
 class Model(object):
@@ -50,9 +50,9 @@ class Model(object):
             setattr(self, k, vars(args)[k])
         self._ini_()
         self._run_()
-        if hasattr(self, "skills") and self.skills: self._est_skill_()
-        if hasattr(self, "plot") and self.plot: self._plot_estimates_()
-        if hasattr(self, "save") and self.save: self._save_estimates_()
+        #if hasattr(self, "skills") and self.skills: self._est_skill_()
+        #if hasattr(self, "plot") and self.plot: self._plot_estimates_()
+        #if hasattr(self, "save") and self.save: self._save_estimates_()
         return
     
     def create_folder(self):
@@ -105,6 +105,7 @@ class Model(object):
         fd = FetchData(self.rad, [self.stime, self.etime])
         beams, _ = fd.fetch_data(v_params=v_params)
         self.rec = fd.convert_to_pandas(beams)
+        print(self.rec.head())
         self.rec["time_index"] = utils.time_days_to_index([x.to_pydatetime() for x in self.rec["time"].tolist()])
         self.rec["time"] = getD2N(self.rec["time"].tolist())
         if hasattr(self, "boxcox") and self.boxcox: self.rec = utils.boxcox_tx(self.rec)

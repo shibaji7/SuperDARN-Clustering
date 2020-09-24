@@ -106,4 +106,3 @@ dependencies:
     - pyqtwebengine==5.12.1
     - pyyaml==5.3.1
     - tables==3.6.1
-prefix: /home/shibaji/anaconda3/envs/sdc

@@ -20,7 +20,7 @@ from pysolar.solar import get_altitude
 from netCDF4 import Dataset
 from sklearn.preprocessing import MinMaxScaler
 
-class SDScatter(obejct):
+class SDScatter(object):
     """ SuperDARN scatter detection and identification module """
     
     IS = 0 # Ionospheric scatter
