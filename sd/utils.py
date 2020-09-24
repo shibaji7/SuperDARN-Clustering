@@ -20,6 +20,23 @@ from pysolar.solar import get_altitude
 from netCDF4 import Dataset
 from sklearn.preprocessing import MinMaxScaler
 
+class SDScatter(obejct):
+    """ SuperDARN scatter detection and identification module """
+    
+    IS = 0 # Ionospheric scatter
+    GS = 1 # Ground scatter
+    SS = 2 # SAIS: Sub-auroral ionospheric scatter
+    US = -1 # Unknown scatter
+    
+    def __init__(self, method=0):
+        """ Initialze scatters """
+        self.method = method
+        return
+    
+    def classify(self, w, v, p):
+        """ Classify based on """
+        return
+
 def time_days_to_index(time_days):
     """
     Method implemented by Esther Robb to convert datetime to index

@@ -44,8 +44,8 @@ class DBased(object):
         self.data = data
         np.random.seed(random_state)
 
-        self.eps = 0.5
-        self.min_samples = 5
+        self.eps = 10
+        self.min_samples = 60
         self.metric = "euclidean"
         self.algorithm = "auto"
         self.n_jobs = 5
