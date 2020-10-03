@@ -29,12 +29,18 @@ class SDScatter(object):
     US = -1 # Unknown scatter
     
     def __init__(self, method=0):
-        """ Initialze scatters """
+        """ 
+            Initialze scatters using different methods [0, 1, 2, 3, 4]
+            0: Sundeen et al. |v| + w/3 < 30 m/s
+            1: Blanchard et al. |v| + 0.4w < 60 m/s
+            2: Blanchard et al. [2009] |v| - 0.139w + 0.00113w^2 < 33.1 m/s
+            3: Proposed for SAIS w-[50-{0.7*(v+5)^2}] = 0 m/s
+        """
         self.method = method
         return
     
     def classify(self, w, v, p):
-        """ Classify based on """
+        """ Classify based on velocity, spectral width, and power"""
         return
 
 def time_days_to_index(time_days):
