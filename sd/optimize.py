@@ -105,6 +105,7 @@ class Model(object):
         """
         Model initialize
         """
+        print([self.stime, self.etime])
         fd = FetchData(self.rad, [self.stime, self.etime])
         beams, _ = fd.fetch_data(v_params=v_params)
         self.rec = fd.convert_to_pandas(beams)
@@ -133,7 +134,7 @@ class Model(object):
             self.m = Partition(self.model, self.rec[params].values, n_clusters=self.n_clusters)
             self.m.setup()
         if self.category == "density": 
-            params = ["bmnum","slist","v","w_l"]
+            params = ["bmnum","slist"]
             self.m = DBased(self.model, self.rec[params].values)
             m_params={"dbscan":{"eps":5.}, "optics":{"max_eps":7.,"metric":"minkowski"},
                     "hdbscan":{"metric":"minkowski", "algorithm":"best"}}
@@ -156,6 +157,7 @@ def _del_():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-pro", "--program", default="mono", help="Batch category")
     parser.add_argument("-c", "--category", default="density", help="Algorithm category")
     parser.add_argument("-m", "--model", default="dbscan", help="Algorithm name")
     parser.add_argument("-nc", "--n_clusters", type=int, default=4, help="Number of clusters (default 8)")
@@ -175,15 +177,17 @@ if __name__ == "__main__":
         print("\n Parameter list for simulation ")
         for k in vars(args).keys():
             print("     ", k, "->", vars(args)[k])
-    dates = pd.read_csv("data/sim/dates.csv", parse_dates=["dn"])
-    rads = pd.read_csv("data/sim/rads.csv")
-    for start in dates.dn.tolist():
-        args.start = start
-        args.end = start + dt.timedelta(days=1)
-        for rad in rads.rad.tolist():
-            args.rad = rad
-            Model(args.rad, args.start, args.end, args)
+    if args.program == "mono": Model(args.rad, args.start, args.end, args)
+    elif args.program == "batch":
+        dates = pd.read_csv("data/sim/dates.csv", parse_dates=["dn"])
+        rads = pd.read_csv("data/sim/rads.csv")
+        for start in dates.dn.tolist():
+            args.start = start
+            args.end = start + dt.timedelta(days=1)
+            for rad in rads.rad.tolist():
+                args.rad = rad
+                Model(args.rad, args.start, args.end, args)
+                break
             break
-        break
     print("")
     _del_()

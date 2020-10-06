@@ -246,8 +246,8 @@ class FetchData(object):
 if __name__ == "__main__":
     fdata = FetchData( "sas", [dt.datetime(2015,3,17,3),
         dt.datetime(2015,3,17,3,20)] )
-    fdata.fetch_data()
-    fdata.fetch_data(by="scan", scan_prop={"dur": 2, "stype": "themis"})
+    #fdata.fetch_data()
+    #fdata.fetch_data(by="scan", scan_prop={"dur": 2, "stype": "themis"})
     import os
     os.system("rm *.log")
     os.system("rm -rf __pycache__/")
