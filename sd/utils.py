@@ -39,8 +39,20 @@ class SDScatter(object):
         self.method = method
         return
     
+    def get_name(self):
+        """ Get the name of the method """
+        if self.method == 0: u = "Sundeen"
+        if self.method == 1: u = "Blanchard"
+        if self.method == 2: u = "Blanchard.2009"
+        if self.method == 3: u = "Proposed.SAIS"
+        return u
+    
     def classify(self, w, v, p):
-        """ Classify based on velocity, spectral width, and power"""
+        """ Classify based on velocity, spectral width, and power """
+        if method == 0: self.gs = (np.abs(v) + w/3 < 30).astype(int)
+        if method == 1: self.gs = (np.abs(v) + 0.4*w < 60).astype(int)
+        if method == 2: self.gs = (np.abs(v) - 0.139*w + 0.00113*w**2 < 33.1).astype(int)
+        if method == 3: self.gs = (w - 50-(0.7*(v+5)**2) < 0).astype(int)
         return
 
 def time_days_to_index(time_days):

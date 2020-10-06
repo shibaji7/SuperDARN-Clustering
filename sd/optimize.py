@@ -23,6 +23,7 @@ import pandas as pd
 
 from get_sd_data import FetchData
 import utils
+from utils import SDScatter
 from skills import Skills
 from plot_utils import RangeTimePlot, getD2N
 
@@ -48,11 +49,12 @@ class Model(object):
         self.create_folder()
         for k in vars(args).keys():
             setattr(self, k, vars(args)[k])
+        self.scatter = SDScatter(method=self.gs_method)
         self._ini_()
         self._run_()
-        #if hasattr(self, "skills") and self.skills: self._est_skill_()
-        #if hasattr(self, "plot") and self.plot: self._plot_estimates_()
-        #if hasattr(self, "save") and self.save: self._save_estimates_()
+        if hasattr(self, "skills") and self.skills: self._est_skill_()
+        if hasattr(self, "plot") and self.plot: self._plot_estimates_()
+        if hasattr(self, "save") and self.save: self._save_estimates_()
         return
     
     def create_folder(self):
@@ -67,9 +69,9 @@ class Model(object):
         """
         fname = "data/op/{rad}.{model}.{dn}.nc".format(rad=self.rad, model=self.model, dn=self.stime.strftime("%Y-%m-%d"))
         dat = self.rec.to_xarray()
-        #dat.attrs = {"dbscore": self.skill.dbscore, "chscore": self.skill.chscore, "siscore": self.skill.siscore,
-        #        "bhscore": self.skill.bhscore, "hscore": self.skill.hscore, "xuscore": self.skill.xuscore,
-        #        "xiebenie": self.skill.xiebenie}
+        dat.attrs = {"dbscore": self.skill.dbscore, "chscore": self.skill.chscore, "siscore": self.skill.siscore,
+                "bhscore": self.skill.bhscore, "hscore": self.skill.hscore, "xuscore": self.skill.xuscore,
+                "xiebenie": self.skill.xiebenie}
         dat.to_netcdf(fname)
         return
 
@@ -86,15 +88,16 @@ class Model(object):
             rtp = RangeTimePlot(75, data_dict["time"], fig_name, num_subplots=3)
             clust_name = ("%s : %d clusters" % (self.model, len(np.unique(np.hstack(data_dict["labels"])))) )
             rtp.addClusterPlot(data_dict, np.array(data_dict["labels"]), b, clust_name)
-                
-                #isgs_name = ("%s : %s threshold" % (alg, threshold))
-                #rtp.addGSISPlot(self.data_dict, gs_flg, b, isgs_name)
+            #gs_flg = 
+            #isgs_name = ("%s : %s threshold" % (self.scatter.get_name(), 0.1))
+            #rtp.addGSISPlot(data_dict, gs_flg, b, isgs_name)
             vel_name = "v"
             rtp.addVelPlot(data_dict, b, vel_name, vel_max=250, vel_step=25)
             plot_date = self.start.strftime("%Y%m%d")
             filename = self._dir_ + "%s_%s_%02d_%s_%s.png" % (self.rad, plot_date, b, self.category, self.model)
             rtp.save(filename)
             rtp.close()
+            break
         return
 
     def _ini_(self, params=["bmnum", "noise.sky", "tfreq", "v", "p_l", "w_l", "slist", "elv", "time_index"], 
@@ -165,7 +168,8 @@ if __name__ == "__main__":
     parser.add_argument("-sk", "--skills", action="store_true", help="Run skill estimate (default False)")
     parser.add_argument("-pl", "--plot", action="store_false", help="Plot estimations (default True)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity (default False)")
-    parser.add_argument("-sv", "--save", action="store_false", help="Increase output verbosity (default True)")
+    parser.add_argument("-sv", "--save", action="store_true", help="Increase output verbosity (default False)")
+    parser.add_argument("-gs", "--gs_method", default=0, help="IS/GS method to detect")
     args = parser.parse_args()
     if args.verbose:
         print("\n Parameter list for simulation ")
